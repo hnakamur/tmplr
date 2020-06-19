@@ -14,8 +14,8 @@ import (
 type Config struct {
 	DestFilename string
 
-	TemplateName    string
-	TemplatePattern string
+	TemplateName     string
+	TemplatePatterns []string
 
 	VarFilename      string
 	YAMLRefDirs      []string
@@ -29,22 +29,24 @@ func Run(cfg *Config) (err error) {
 		return err
 	}
 
-	base := template.New(cfg.TemplateName).Funcs(sprig.TxtFuncMap())
-	var tmpl *template.Template
-	if cfg.TemplatePattern == "" {
+	tmpl := template.New(cfg.TemplateName).Funcs(sprig.TxtFuncMap())
+	if len(cfg.TemplatePatterns) == 0 ||
+		cfg.TemplatePatterns[len(cfg.TemplatePatterns)-1] == "" {
 		var data []byte
 		data, err = ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return err
 		}
-		tmpl, err = base.Parse(string(data))
+		tmpl, err = tmpl.Parse(string(data))
 		if err != nil {
 			return err
 		}
 	} else {
-		tmpl, err = base.ParseGlob(cfg.TemplatePattern)
-		if err != nil {
-			return err
+		for _, pattern := range cfg.TemplatePatterns {
+			tmpl, err = tmpl.ParseGlob(pattern)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
