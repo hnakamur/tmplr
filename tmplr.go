@@ -7,6 +7,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/goccy/go-yaml"
 )
 
@@ -17,6 +18,7 @@ func Run(destFilename, varFilename, tmplName, tmplPattern string) (err error) {
 		return err
 	}
 
+	base := template.New(tmplName).Funcs(sprig.TxtFuncMap())
 	var tmpl *template.Template
 	if tmplPattern == "" || tmplPattern == "-" {
 		var data []byte
@@ -24,12 +26,12 @@ func Run(destFilename, varFilename, tmplName, tmplPattern string) (err error) {
 		if err != nil {
 			return err
 		}
-		tmpl, err = template.New(tmplName).Parse(string(data))
+		tmpl, err = base.Parse(string(data))
 		if err != nil {
 			return err
 		}
 	} else {
-		tmpl, err = template.ParseGlob(tmplPattern)
+		tmpl, err = base.ParseGlob(tmplPattern)
 		if err != nil {
 			return err
 		}
