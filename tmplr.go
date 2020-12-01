@@ -5,17 +5,14 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"text/template"
 
-	"github.com/Masterminds/sprig/v3"
+	"github.com/flosch/pongo2/v4"
 	"github.com/goccy/go-yaml"
 )
 
 type Config struct {
-	DestFilename string
-
-	TemplateName     string
-	TemplatePatterns []string
+	DestFilename     string
+	TemplateFilename string
 
 	VarFilename      string
 	YAMLRefDirs      []string
@@ -23,30 +20,27 @@ type Config struct {
 }
 
 func Run(cfg *Config) (err error) {
-	var data interface{}
+	var data map[string]interface{}
 	data, err = readYAMLFile(cfg.VarFilename, cfg.YAMLRefDirs, cfg.YAMLRefRecursive)
 	if err != nil {
 		return err
 	}
 
-	tmpl := template.New(cfg.TemplateName).Funcs(sprig.TxtFuncMap())
-	if len(cfg.TemplatePatterns) == 0 ||
-		cfg.TemplatePatterns[len(cfg.TemplatePatterns)-1] == "" {
+	var tmpl *pongo2.Template
+	if len(cfg.TemplateFilename) == 0 {
 		var data []byte
 		data, err = ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return err
 		}
-		tmpl, err = tmpl.Parse(string(data))
+		tmpl, err = pongo2.FromString(string(data))
 		if err != nil {
 			return err
 		}
 	} else {
-		for _, pattern := range cfg.TemplatePatterns {
-			tmpl, err = tmpl.ParseGlob(pattern)
-			if err != nil {
-				return err
-			}
+		tmpl, err = pongo2.FromFile(cfg.TemplateFilename)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -72,7 +66,7 @@ func Run(cfg *Config) (err error) {
 		w = bw
 	}
 
-	err = tmpl.ExecuteTemplate(w, cfg.TemplateName, data)
+	err = tmpl.ExecuteWriter(data, w)
 	if err != nil {
 		return err
 	}
@@ -80,7 +74,7 @@ func Run(cfg *Config) (err error) {
 	return nil
 }
 
-func readYAMLFile(filename string, refDirs []string, refRecursive bool) (interface{}, error) {
+func readYAMLFile(filename string, refDirs []string, refRecursive bool) (map[string]interface{}, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -90,7 +84,7 @@ func readYAMLFile(filename string, refDirs []string, refRecursive bool) (interfa
 	d := yaml.NewDecoder(bufio.NewReader(file),
 		yaml.ReferenceDirs(refDirs...),
 		yaml.RecursiveDir(refRecursive))
-	var v interface{}
+	var v map[string]interface{}
 	if err := d.Decode(&v); err != nil {
 		return nil, err
 	}

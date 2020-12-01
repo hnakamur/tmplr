@@ -33,10 +33,7 @@ func (ss *stringFlags) Set(value string) error {
 func main() {
 	varFilename := flag.String("var", "var.yml", "variable YAML file")
 	destFilename := flag.String("dest", "", "destination file (\"\" means stdout)")
-	tmplName := flag.String("name", "main", "template name to execute")
-
-	var tmplPatterns stringFlags
-	flag.Var(&tmplPatterns, "tmpl", "template filename glob pattern (\"\" means stdin)")
+	tmplFilename := flag.String("tmpl", "", "template filename to execute")
 
 	var yamlRefDirs stringFlags
 	flag.Var(&yamlRefDirs, "ref", "variable YAML reference directory (can specify multiple times)")
@@ -46,8 +43,7 @@ func main() {
 
 	cfg := &tmplr.Config{
 		DestFilename:     *destFilename,
-		TemplateName:     *tmplName,
-		TemplatePatterns: []string(tmplPatterns),
+		TemplateFilename: *tmplFilename,
 		VarFilename:      *varFilename,
 		YAMLRefDirs:      []string(yamlRefDirs),
 		YAMLRefRecursive: *refRecursive,
