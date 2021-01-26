@@ -11,6 +11,7 @@ import (
 )
 
 type Config struct {
+	AutoEscape       bool
 	DestFilename     string
 	TemplateFilename string
 
@@ -20,6 +21,7 @@ type Config struct {
 }
 
 func Run(cfg *Config) (err error) {
+	pongo2.SetAutoescape(cfg.AutoEscape)
 	var data map[string]interface{}
 	data, err = readYAMLFile(cfg.VarFilename, cfg.YAMLRefDirs, cfg.YAMLRefRecursive)
 	if err != nil {
