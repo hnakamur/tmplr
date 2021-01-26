@@ -7,6 +7,7 @@ import (
 )
 
 func TestPongo2AutoEscape(t *testing.T) {
+	pongo2.SetAutoescape(false)
 	tpl, err := pongo2.FromString("{{ arg }}")
 	if err != nil {
 		t.Fatal(err)
