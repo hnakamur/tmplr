@@ -2,11 +2,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/hnakamur/tmplr"
 )
+
+var version string = "0.4.0"
 
 type stringFlags []string
 
@@ -34,12 +38,18 @@ func main() {
 	varFilename := flag.String("var", "var.yml", "variable YAML file")
 	destFilename := flag.String("dest", "", "destination file (\"\" means stdout)")
 	tmplFilename := flag.String("tmpl", "", "template filename to execute")
+	showVersion := flag.Bool("version", false, "show version and exit")
 
 	var yamlRefDirs stringFlags
 	flag.Var(&yamlRefDirs, "ref", "variable YAML reference directory (can specify multiple times)")
 
 	refRecursive := flag.Bool("ref-recursive", true, "searches yaml file recursively in -ref directories")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 
 	cfg := &tmplr.Config{
 		DestFilename:     *destFilename,
