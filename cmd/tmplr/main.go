@@ -10,7 +10,7 @@ import (
 	"github.com/hnakamur/tmplr"
 )
 
-var version string = "0.4.0"
+var version string = "0.5.0"
 
 type stringFlags []string
 
