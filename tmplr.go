@@ -2,6 +2,7 @@ package tmplr
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -57,12 +58,13 @@ func Run(cfg *Config) (err error) {
 		}
 		bw := bufio.NewWriter(file)
 		defer func() {
-			err = bw.Flush()
-			err2 := file.Sync()
-			if err == nil {
-				err = err2
+			var err2, err3, err4 error
+			if err2 = bw.Flush(); err2 == nil {
+				if err3 = file.Sync(); err3 == nil {
+					err4 = file.Close()
+				}
 			}
-			file.Close()
+			err = errors.Join(err, err2, err3, err4)
 		}()
 
 		w = bw
